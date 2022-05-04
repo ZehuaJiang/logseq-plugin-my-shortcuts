@@ -1,59 +1,49 @@
-import "@logseq/libs";
-import "virtual:windi.css";
+import '@logseq/libs';
+import { logseq as curPlugin } from '../package.json'
+const pluginId: string = curPlugin.id
 
-import React from "react";
-import * as ReactDOM from "react-dom/client";
-import App from "./App";
-
-import { logseq as PL } from "../package.json";
-
-const css = (t, ...args) => String.raw(t, ...args);
-
-const pluginId = PL.id;
-
-function main() {
-  console.info(`#${pluginId}: MAIN`);
-  const root = ReactDOM.createRoot(document.getElementById("app")!);
-
-  root.render(
-    <React.StrictMode>
-      <App />
-    </React.StrictMode>
-  );
-
-  function createModel() {
-    return {
-      show() {
-        logseq.showMainUI();
-      },
-    };
-  }
-
-  logseq.provideModel(createModel());
-  logseq.setMainUIInlineStyle({
-    zIndex: 11,
-  });
-
-  const openIconName = "template-plugin-open";
-
-  logseq.provideStyle(css`
-    .${openIconName} {
-      opacity: 0.55;
-      font-size: 20px;
-      margin-top: 4px;
-    }
-
-    .${openIconName}:hover {
-      opacity: 0.9;
-    }
-  `);
-
-  logseq.App.registerUIItem("toolbar", {
-    key: openIconName,
-    template: `
-      <div data-on-click="show" class="${openIconName}">⚙️</div>
-    `,
-  });
+function makeTodoContent(content: string): string {
+  let stripTodoContent = /^TODO\s+/.test(content)
+    ? content.replace(/^TODO\s+/, '')
+    : content;
+  return `TODO ${stripTodoContent}`;
 }
 
+async function makeTodo() {
+  const selected = await logseq.Editor.getSelectedBlocks();
+  if (selected && selected.length > 1) {
+    for (let block of selected) {
+      await logseq.Editor.updateBlock(
+        block.uuid,
+        makeTodoContent(block.content)
+      );
+    }
+  } else {
+    const block = await logseq.Editor.getCurrentBlock();
+    if (block?.uuid) {
+      await logseq.Editor.updateBlock(
+        block.uuid,
+        makeTodoContent(block.content)
+      );
+    }
+  }
+}
+
+async function main() {
+  console.info(`${pluginId} MAIN`);
+  logseq.App.registerCommandPalette(
+    {
+      key: `todo`,
+      label: `shortcut for todo`,
+      keybinding: {
+        mode: 'global',
+        binding: 'mod+l',
+      },
+    },
+    async () => {
+      await makeTodo();
+    }
+  );
+  console.info(`${pluginId} LOADED`);
+}
 logseq.ready(main).catch(console.error);

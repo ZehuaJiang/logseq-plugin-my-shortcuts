@@ -1,5 +1,5 @@
 {
-  "name": "logseq-plugin-template-react",
+  "name": "logseq-plugin-my-shortcuts",
   "version": "0.0.0",
   "main": "dist/index.html",
   "scripts": {
@@ -37,7 +37,7 @@
     "windicss": "3.5.1"
   },
   "logseq": {
-    "id": "_pengx17-logseq-template-react",
+    "id": "logseq-plugin-my-shortcuts",
     "icon": "./logo.svg"
   }
 }
